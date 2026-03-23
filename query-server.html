@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>仪器主板型号查询（服务器版）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        h1::before {
+            content: "🔍 ";
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .server-info {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #2e7d32;
+        }
+
+        .tips {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .search-section {
+            display: flex;
+            gap: 10px;
+            margin: 30px 0;
+        }
+
+        .search-section input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-section input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .search-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .search-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .result-section.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .info-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+            width: 140px;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            color: #333;
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .software-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .software-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .no-result {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .error-msg {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c62828;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>仪器主板型号查询</h1>
+            <div class="subtitle">服务器版 - 实时查询服务器数据</div>
+
+            <div class="server-info">
+                <strong>🖥️ 服务器模式</strong> - 数据实时从服务器获取，所有用户共享同一套数据
+            </div>
+
+            <div class="tips">
+                <strong>📋 使用说明：</strong><br>
+                1. 在下方输入框中输入仪器序列号（例如：V0042PW002）<br>
+                2. 点击"查询"按钮查看仪器的主板信息<br>
+                3. 系统将显示主板物料号、型号和可安装的软件版本
+            </div>
+
+            <div id="errorMsg" class="error-msg" style="display: none;"></div>
+
+            <div class="search-section">
+                <input type="text" id="snInput" placeholder="请输入仪器序列号（例如：V0042PW002）">
+                <button class="search-btn" id="searchBtn" onclick="searchInstrument()">查询</button>
+            </div>
+
+            <div class="result-section" id="resultSection">
+                <div class="result-header">查询结果</div>
+                <div class="result-content" id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API 基础地址
+        const API_BASE = '';
+
+        // 显示错误信息
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+            setTimeout(() => {
+                errorMsg.style.display = 'none';
+            }, 5000);
+        }
+
+        // 查询仪器信息
+        async function searchInstrument() {
+            const snInput = document.getElementById('snInput');
+            const sn = snInput.value.trim();
+            const searchBtn = document.getElementById('searchBtn');
+            const resultContent = document.getElementById('resultContent');
+            const resultSection = document.getElementById('resultSection');
+            
+            if (!sn) {
+                showError('请输入仪器序列号');
+                return;
+            }
+
+            // 显示加载状态
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<span class="loading"></span>查询中...';
+            resultSection.classList.remove('show');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/search?sn=${encodeURIComponent(sn)}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                if (data.found) {
+                    displayResult(data);
+                } else {
+                    showNoResult(sn);
+                }
+            } catch (error) {
+                showError('查询失败: ' + error.message + '，请检查服务器是否正常运行');
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = '查询';
+            }
+        }
+
+        // 显示查询结果
+        function displayResult(result) {
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+            
+            const softwareList = (result.softwareVersions || '').toString().split(/[,，]/).map(s => s.trim()).filter(s => s);
+            
+            let softwareHtml = '';
+            if (softwareList.length > 0) {
+                softwareHtml = '<div class="software-list">' + 
+                    softwareList.map(s => '<span class="software-tag">' + s + '</span>').join('') + 
+                    '</div>';
+            } else {
+                softwareHtml = '<span style="color: #999;">暂无数据</span>';
+            }
+
+            resultContent.innerHTML = 
+                '<div class="info-row">' +
+                    '<span class="info-label">仪器序列号：</span>' +
+                    '<span class="info-value">' + (result.serialNumber || '-') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">主板物料号：</span>' +
+                    '<span class="info-value">' + (result.materialNumber || '-') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">主板型号：</span>' +
+                    '<span class="info-value">' + (result.model || '-') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">可安装软件版本：</span>' +
+                    '<span class="info-value">' + softwareHtml + '</span>' +
+                '</div>';
+
+            resultSection.classList.add('show');
+        }
+
+        // 显示未找到结果
+        function showNoResult(sn) {
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultContent.innerHTML = 
+                '<div class="no-result">' +
+                    '未找到仪器序列号为 "' + sn + '" 的信息<br>' +
+                    '<small>请检查序列号是否正确，或联系管理员确认数据是否已更新</small>' +
+                '</div>';
+            
+            resultSection.classList.add('show');
+        }
+
+        // 回车键查询
+        document.getElementById('snInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchInstrument();
+            }
+        });
+    </script>
+</body>
+</html>
