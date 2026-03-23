@@ -242,8 +242,10 @@
     </div>
 
     <script>
-        // API 基础地址
-        const API_BASE = '';
+        // API 基础地址 - 根据当前访问方式自动判断
+        const API_BASE = window.location.protocol === 'file:' 
+            ? 'http://localhost:3000'  // 本地文件访问时使用
+            : '';  // HTTP 访问时使用相对路径
 
         // 显示错误信息
         function showError(message) {
