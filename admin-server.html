@@ -276,10 +276,13 @@
     </div>
 
     <script>
-        // API 基础地址 - 根据当前访问方式自动判断
-        const API_BASE = window.location.protocol === 'file:' 
-            ? 'http://localhost:3000'  // 本地文件访问时使用
-            : '';  // HTTP 访问时使用相对路径
+        // API 基础地址 - 配置你的 Vercel 域名
+        // 本地开发使用：http://localhost:3000
+        // Vercel 部署使用：https://instrument-checker-server.vercel.app
+        const API_BASE = 'https://instrument-checker-server.vercel.app';
+        
+        // 解决跨域问题：使用 no-cors 模式（仅用于简单请求）
+        // 注意：这可能会限制某些功能
         
         // 数据状态
         let isMainDataLoaded = false;
@@ -353,17 +356,29 @@
             if (!file) return;
 
             document.getElementById('mainFileInfo').innerHTML = '<div class="loading"></div> 正在上传...';
+            
+            console.log('准备上传文件:', file.name);
+            console.log('API地址:', `${API_BASE}/api/upload/main`);
 
             const formData = new FormData();
             formData.append('file', file);
 
             try {
+                console.log('开始发送请求...');
                 const response = await fetch(`${API_BASE}/api/upload/main`, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    mode: 'cors'
                 });
+                
+                console.log('收到响应:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
 
                 const data = await response.json();
+                console.log('响应数据:', data);
 
                 if (data.success) {
                     isMainDataLoaded = true;
@@ -371,10 +386,11 @@
                     updateDataStatus();
                     showMessage('主数据上传成功！', 'success');
                 } else {
-                    throw new Error(data.error);
+                    throw new Error(data.error || '未知错误');
                 }
             } catch (error) {
-                showMessage('上传失败: ' + error.message, 'error');
+                console.error('上传错误:', error);
+                showMessage('上传失败: ' + error.message + ' (请检查控制台)', 'error');
                 document.getElementById('mainFileInfo').textContent = '';
             }
         });
