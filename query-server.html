@@ -242,10 +242,10 @@
     </div>
 
     <script>
-        // API 基础地址 - 根据当前访问方式自动判断
-        const API_BASE = window.location.protocol === 'file:' 
-            ? 'http://localhost:3000'  // 本地文件访问时使用
-            : '';  // HTTP 访问时使用相对路径
+        // API 基础地址 - 配置你的 Vercel 域名
+        // 本地开发使用：http://localhost:3000
+        // Vercel 部署使用：https://你的域名.vercel.app
+        const API_BASE = 'https://instrument-checker-server.vercel.app';
 
         // 显示错误信息
         function showError(message) {
