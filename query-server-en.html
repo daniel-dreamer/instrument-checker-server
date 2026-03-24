@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instrument Motherboard Query System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        h1::before {
+            content: "🔍 ";
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .login-section {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .server-info {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #2e7d32;
+        }
+
+        .tips {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .search-section {
+            display: flex;
+            gap: 10px;
+            margin: 30px 0;
+        }
+
+        .search-section input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-section input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .search-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .search-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .result-section.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .info-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+            width: 180px;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            color: #333;
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .software-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .software-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .no-result {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .error-msg {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c62828;
+        }
+
+        .success-msg {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .logout-btn {
+            background: #f44336;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            float: right;
+        }
+
+        .logout-btn:hover {
+            background: #d32f2f;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Section -->
+        <div class="card" id="loginCard">
+            <h1>Instrument Query System</h1>
+            <div class="subtitle">Please login to access the system</div>
+
+            <div class="login-section">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter password">
+                </div>
+                <button class="login-btn" onclick="login()">Login</button>
+            </div>
+
+            <div id="loginError" class="error-msg hidden"></div>
+        </div>
+
+        <!-- Query Section (Hidden by default) -->
+        <div class="card hidden" id="queryCard">
+            <div style="overflow: hidden;">
+                <h1 style="float: left;">Instrument Query System</h1>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+            <div class="subtitle">Server Version - Real-time data query</div>
+
+            <div class="server-info">
+                <strong>🖥️ Server Mode</strong> - Data is retrieved from server in real-time
+            </div>
+
+            <div class="tips">
+                <strong>📋 Instructions:</strong><br>
+                1. Enter the instrument serial number in the input box below (e.g., V0042PW002)<br>
+                2. Click the "Search" button to view instrument motherboard information<br>
+                3. The system will display the motherboard part number, model, and installable software versions
+            </div>
+
+            <div id="errorMsg" class="error-msg" style="display: none;"></div>
+
+            <div class="search-section">
+                <input type="text" id="snInput" placeholder="Enter instrument serial number (e.g., V0042PW002)">
+                <button class="search-btn" id="searchBtn" onclick="searchInstrument()">Search</button>
+            </div>
+
+            <div class="result-section" id="resultSection">
+                <div class="result-header">Query Results</div>
+                <div class="result-content" id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL - Configure your Vercel domain
+        const API_BASE = 'https://instrument-checker-server.vercel.app';
+
+        // Check if already logged in
+        window.onload = function() {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            if (isLoggedIn === 'true') {
+                showQueryInterface();
+            }
+        };
+
+        // Login function - Cloud authentication
+        async function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorDiv = document.getElementById('loginError');
+            const loginBtn = document.querySelector('.login-btn');
+
+            if (!username || !password) {
+                errorDiv.textContent = 'Please enter both username and password';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="loading"></span>Logging in...';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    sessionStorage.setItem('username', data.username);
+                    errorDiv.classList.add('hidden');
+                    showQueryInterface();
+                } else {
+                    errorDiv.textContent = data.error || 'Invalid username or password';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Login failed: ' + error.message;
+                errorDiv.classList.remove('hidden');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+            }
+        }
+
+        // Show query interface
+        function showQueryInterface() {
+            document.getElementById('loginCard').classList.add('hidden');
+            document.getElementById('queryCard').classList.remove('hidden');
+        }
+
+        // Logout function
+        function logout() {
+            sessionStorage.removeItem('isLoggedIn');
+            document.getElementById('queryCard').classList.add('hidden');
+            document.getElementById('loginCard').classList.remove('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        // Display error message
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+            setTimeout(() => {
+                errorMsg.style.display = 'none';
+            }, 5000);
+        }
+
+        // Search instrument
+        async function searchInstrument() {
+            const snInput = document.getElementById('snInput');
+            const sn = snInput.value.trim();
+            const searchBtn = document.getElementById('searchBtn');
+            const resultContent = document.getElementById('resultContent');
+            const resultSection = document.getElementById('resultSection');
+            
+            if (!sn) {
+                showError('Please enter instrument serial number');
+                return;
+            }
+
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<span class="loading"></span>Searching...';
+            resultSection.classList.remove('show');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/search?sn=${encodeURIComponent(sn)}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                if (data.found) {
+                    displayResult(data);
+                } else {
+                    showNoResult(sn);
+                }
+            } catch (error) {
+                showError('Search failed: ' + error.message + ', please check if server is running');
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Search';
+            }
+        }
+
+        // Display query result
+        function displayResult(result) {
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+            
+            const softwareList = (result.softwareVersions || '').toString().split(/[,，]/).map(s => s.trim()).filter(s => s);
+            
+            let softwareHtml = '';
+            if (softwareList.length > 0) {
+                softwareHtml = '<div class="software-list">' + 
+                    softwareList.map(s => '<span class="software-tag">' + s + '</span>').join('') + 
+                    '</div>';
+            } else {
+                softwareHtml = '<span style="color: #999;">No data available</span>';
+            }
+
+            resultContent.innerHTML = 
+                '<div class="info-row">' +
+                    '<span class="info-label">Serial Number:</span>' +
+                    '<span class="info-value">' + (result.serialNumber || '-') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">Part Number:</span>' +
+                    '<span class="info-value">' + (result.materialNumber || '-') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">Model:</span>' +
+                    '<span class="info-value">' + (result.model || '-') + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                    '<span class="info-label">Installable Software:</span>' +
+                    '<span class="info-value">' + softwareHtml + '</span>' +
+                '</div>';
+
+            resultSection.classList.add('show');
+        }
+
+        // Show no result
+        function showNoResult(sn) {
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultContent.innerHTML = 
+                '<div class="no-result">' +
+                    'No information found for serial number "' + sn + '"<br>' +
+                    '<small>Please check if the serial number is correct, or contact administrator to confirm data is updated</small>' +
+                '</div>';
+            
+            resultSection.classList.add('show');
+        }
+
+        // Enter key to search
+        document.getElementById('snInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchInstrument();
+            }
+        });
+
+        // Enter key to login
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>

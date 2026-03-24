@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>账户密码管理 - 仪器主板查询系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group input:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .current-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .current-info p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .current-info strong {
+            color: #333;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .password-toggle {
+            position: relative;
+        }
+
+        .password-toggle input {
+            padding-right: 45px;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 18px;
+            padding: 5px;
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .links a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        .security-note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        .security-note strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 账户密码管理</h1>
+            <p>设置查询系统的登录账户和密码</p>
+        </div>
+
+        <div class="card">
+            <div id="message" class="message"></div>
+
+            <!-- 登录验证区域 -->
+            <div id="loginSection">
+                <h2 class="section-title">管理员验证</h2>
+                <p style="margin-bottom: 20px; color: #666; font-size: 14px;">
+                    请先输入当前账户密码进行验证
+                </p>
+                <div class="form-group">
+                    <label>当前用户名</label>
+                    <input type="text" id="currentUsername" placeholder="请输入当前用户名">
+                </div>
+                <div class="form-group password-toggle">
+                    <label>当前密码</label>
+                    <input type="password" id="currentPassword" placeholder="请输入当前密码">
+                    <button type="button" class="toggle-btn" onclick="togglePassword('currentPassword')">👁️</button>
+                </div>
+                <button class="btn btn-primary" onclick="verifyCurrentUser()">验证身份</button>
+            </div>
+
+            <!-- 修改密码区域 -->
+            <div id="changeSection" style="display: none;">
+                <h2 class="section-title">修改账户密码</h2>
+                
+                <div class="current-info">
+                    <p><strong>当前用户名：</strong><span id="displayCurrentUsername">-</span></p>
+                </div>
+
+                <div class="form-group">
+                    <label>新用户名</label>
+                    <input type="text" id="newUsername" placeholder="请输入新用户名">
+                </div>
+                <div class="form-group password-toggle">
+                    <label>新密码</label>
+                    <input type="password" id="newPassword" placeholder="请输入新密码（至少6位）">
+                    <button type="button" class="toggle-btn" onclick="togglePassword('newPassword')">👁️</button>
+                </div>
+                <div class="form-group password-toggle">
+                    <label>确认新密码</label>
+                    <input type="password" id="confirmPassword" placeholder="请再次输入新密码">
+                    <button type="button" class="toggle-btn" onclick="togglePassword('confirmPassword')">👁️</button>
+                </div>
+                
+                <button class="btn btn-primary" onclick="saveNewCredentials()">保存修改</button>
+                <button class="btn btn-secondary" onclick="cancelChange()">取消</button>
+            </div>
+
+            <div class="security-note">
+                <strong>⚠️ 安全提示</strong>
+                请妥善保管您的账户密码。默认账户：admin，默认密码：admin123。建议首次使用后立即修改。
+            </div>
+
+            <div class="links">
+                <a href="query-server-en.html">返回查询页面</a> | 
+                <a href="admin-server.html">数据管理</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL - 配置你的Vercel域名
+        const API_BASE = 'https://instrument-checker-server.vercel.app';
+
+        // 当前验证通过的账户信息（临时存储）
+        let verifiedCredentials = {
+            username: '',
+            password: ''
+        };
+
+        // 显示消息
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = 'message ' + type;
+            setTimeout(() => {
+                messageEl.className = 'message';
+            }, 5000);
+        }
+
+        // 切换密码显示/隐藏
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // 验证当前用户 - 云端验证
+        async function verifyCurrentUser() {
+            const username = document.getElementById('currentUsername').value.trim();
+            const password = document.getElementById('currentPassword').value.trim();
+            const verifyBtn = document.querySelector('#loginSection .btn-primary');
+            
+            if (!username || !password) {
+                showMessage('请输入用户名和密码', 'error');
+                return;
+            }
+
+            verifyBtn.disabled = true;
+            verifyBtn.textContent = '验证中...';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 保存验证通过的凭据
+                    verifiedCredentials.username = username;
+                    verifiedCredentials.password = password;
+                    
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('changeSection').style.display = 'block';
+                    document.getElementById('displayCurrentUsername').textContent = data.username;
+                    document.getElementById('newUsername').value = data.username;
+                    showMessage('验证成功，请设置新账户密码', 'success');
+                } else {
+                    showMessage(data.error || '用户名或密码错误', 'error');
+                }
+            } catch (error) {
+                showMessage('验证失败：' + error.message, 'error');
+            } finally {
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = '验证身份';
+            }
+        }
+
+        // 保存新账户密码 - 云端更新
+        async function saveNewCredentials() {
+            const newUsername = document.getElementById('newUsername').value.trim();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const saveBtn = document.querySelector('#changeSection .btn-primary');
+
+            // 验证输入
+            if (!newUsername) {
+                showMessage('请输入新用户名', 'error');
+                return;
+            }
+
+            if (!newPassword) {
+                showMessage('请输入新密码', 'error');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showMessage('密码长度至少为6位', 'error');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showMessage('两次输入的密码不一致', 'error');
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = '保存中...';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/change-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        currentUsername: verifiedCredentials.username,
+                        currentPassword: verifiedCredentials.password,
+                        newUsername: newUsername,
+                        newPassword: newPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('账户密码修改成功！', 'success');
+                    
+                    // 延迟后返回登录验证界面
+                    setTimeout(() => {
+                        cancelChange();
+                        document.getElementById('currentUsername').value = '';
+                        document.getElementById('currentPassword').value = '';
+                        // 清空验证凭据
+                        verifiedCredentials = { username: '', password: '' };
+                    }, 1500);
+                } else {
+                    showMessage(data.error || '修改失败', 'error');
+                }
+            } catch (error) {
+                showMessage('保存失败：' + error.message, 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = '保存修改';
+            }
+        }
+
+        // 取消修改
+        function cancelChange() {
+            document.getElementById('changeSection').style.display = 'none';
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            // 清空验证凭据
+            verifiedCredentials = { username: '', password: '' };
+        }
+
+        // 页面加载时获取当前账户信息
+        window.onload = async function() {
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/account`);
+                const data = await response.json();
+                console.log('当前云端账户：', data.username);
+            } catch (error) {
+                console.log('获取账户信息失败：', error.message);
+            }
+        };
+
+        // 回车键提交
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (document.getElementById('loginSection').style.display !== 'none') {
+                    verifyCurrentUser();
+                } else {
+                    saveNewCredentials();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
