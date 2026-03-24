@@ -16,6 +16,12 @@ let mainData = [];
 let mappingData = [];
 let dataLastUpdated = null;
 
+// 账户信息存储（云端存储）
+let accountCredentials = {
+    username: 'admin',
+    password: 'admin123'
+};
+
 // 文件上传配置 - 使用内存存储
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -246,6 +252,64 @@ app.post('/api/clear', (req, res) => {
         console.error('清除数据错误:', error);
         res.status(500).json({ error: '清除失败: ' + error.message });
     }
+});
+
+// 账户管理 API
+
+// 登录验证
+app.post('/api/auth/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+        return res.status(400).json({ error: '请提供用户名和密码' });
+    }
+    
+    if (username === accountCredentials.username && password === accountCredentials.password) {
+        res.json({
+            success: true,
+            message: '登录成功',
+            username: accountCredentials.username
+        });
+    } else {
+        res.status(401).json({
+            success: false,
+            error: '用户名或密码错误'
+        });
+    }
+});
+
+// 获取当前账户信息（仅返回用户名）
+app.get('/api/auth/account', (req, res) => {
+    res.json({
+        username: accountCredentials.username
+    });
+});
+
+// 修改账户密码
+app.post('/api/auth/change-password', (req, res) => {
+    const { currentUsername, currentPassword, newUsername, newPassword } = req.body;
+    
+    if (!currentUsername || !currentPassword || !newUsername || !newPassword) {
+        return res.status(400).json({ error: '请提供完整的账户信息' });
+    }
+    
+    // 验证当前账户密码
+    if (currentUsername !== accountCredentials.username || currentPassword !== accountCredentials.password) {
+        return res.status(401).json({
+            success: false,
+            error: '当前用户名或密码错误'
+        });
+    }
+    
+    // 更新账户信息
+    accountCredentials.username = newUsername;
+    accountCredentials.password = newPassword;
+    
+    res.json({
+        success: true,
+        message: '账户密码修改成功',
+        username: newUsername
+    });
 });
 
 // 健康检查
